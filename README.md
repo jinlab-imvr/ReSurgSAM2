@@ -6,7 +6,7 @@ Official implementation for ReSurgSAM2, an innovative model that leverages the p
 >
 > Haofeng Liu, Mingqi Gao, Xuxiao Luo, Ziyue Wang, Guanyi Qin, Junde Wu, Yueming Jin
 >
-> Early accept by MICCAI 2025
+> Early accepted by MICCAI 2025
 
 The source code is coming soon.
 
