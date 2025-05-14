@@ -110,7 +110,7 @@ if __name__ == "__main__":
         print(f"{args.ref_annotation_path} not found")
         exit(0)
     with zipfile.ZipFile(args.ref_annotation_path, "r") as zip_ref:
-        # 解压zip中的Ref-Endovis17
+        # Unzip Ref-Endovis17
         zip_ref.extractall(args.target_dataset_root)
 
     # delete unzip_dir

@@ -60,16 +60,16 @@ if __name__ == "__main__":
         'miccai_challenge_release_4.zip',
     ]
 
-    # # unzip the dataset
-    # if not os.path.exists(args.unzip_dir):
-    #     os.makedirs(args.unzip_dir)
-    # for dataset_name in tqdm(dataset_list):
-    #     dataset_path = os.path.join(args.download_data_dir, dataset_name)
-    #     if not os.path.exists(dataset_path):
-    #         print(f"{dataset_name} not found in {args.download_data_dir}")
-    #         continue
-    #     with zipfile.ZipFile(dataset_path, "r") as zip_ref:
-    #         zip_ref.extractall(args.unzip_dir)
+    # unzip the dataset
+    if not os.path.exists(args.unzip_dir):
+        os.makedirs(args.unzip_dir)
+    for dataset_name in tqdm(dataset_list):
+        dataset_path = os.path.join(args.download_data_dir, dataset_name)
+        if not os.path.exists(dataset_path):
+            print(f"{dataset_name} not found in {args.download_data_dir}")
+            continue
+        with zipfile.ZipFile(dataset_path, "r") as zip_ref:
+            zip_ref.extractall(args.unzip_dir)
 
     seq_dir_list = []
     for root, dirs, files in os.walk(args.unzip_dir):
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         print(f"{args.ref_annotation_path} not found")
         exit(0)
     with zipfile.ZipFile(args.ref_annotation_path, "r") as zip_ref:
-        # 解压zip中的Ref-Endovis18
+        # Unzip Ref-Endovis18
         zip_ref.extractall(args.target_dataset_root)
 
     # delete unzip_dir
