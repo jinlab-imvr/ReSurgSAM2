@@ -22,7 +22,9 @@ Achieves substantial improvements in accuracy and efficiency compared to existin
 
 ![architecture](./assets/architecture.png)
 
+## Dataset Acquisition and Preprocessing
 
+Please follow the steps written in [datasets/README.md](datasets/README.md)
 
 ## Acknowledgement
 
