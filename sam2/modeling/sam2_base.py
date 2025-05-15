@@ -241,7 +241,6 @@ class SAM2Base(torch.nn.Module):
         )
 
     def _build_cross_modal_modules(self):
-        # TODO 之后有多尺度，需要修改
         image_embedding_size = self.image_size // self.backbone_stride
 
         clip = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -973,7 +972,6 @@ class SAM2Base(torch.nn.Module):
 
         # output_dict["text_emb_inputs_per_frame"] = {}  # {frame_idx: <input_text>}
 
-        # TODO 参考training，准备text_emb_inputs，同时保存previous_ref_feats_list
         current_out, sam_outputs, _, _ = self._track_step(
             frame_idx,
             is_init_cond_frame,

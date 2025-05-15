@@ -104,7 +104,6 @@ def load_text_from_json(
     for exp_id, exp_item in expressions.items():
         per_exp_input_text[exp_id] = exp_item['exp']
         per_exp_obj_id[exp_id] = int(exp_item['obj_id'])
-        # TODO 后续可能需要加载更多信息
     for exp_id, frame_item in first_frame.items():
         per_exp_first_frame_id[exp_id] = int(frame_item)
 
@@ -158,7 +157,6 @@ def rvos_inference(
     save_frame_interval=1,
     ref_dataset=True,
     only_ref=False,
-    strat_from_first_frame=True,
 ):
     """
     Run VOS inference on a single video with the given predictor.
@@ -171,7 +169,6 @@ def rvos_inference(
     # load the video frames and initialize the inference state on this video
     assert ref_dataset, "This function is only for reference datasets"
     print(f'Evaluating with only_ref: {only_ref}')
-    print(f'Starting from first frame: {strat_from_first_frame}')
     video_dir = os.path.join(base_video_dir, video_name)
     all_frame_names = [
         os.path.splitext(p)[0]
@@ -192,8 +189,6 @@ def rvos_inference(
     per_exp_input_text, per_exp_obj_id, per_exp_first_frame_id, input_palette = load_text_from_json(
         input_expression_json=input_expression_json, video_name=video_name
     )
-    # 默认第0帧开始。如果需要中间帧的mask，可以在这里加载
-    # TODO 目前只支持第0帧的text prompt，因为每个物体只有一个text prompt，所以使用object_id作为key
     for i, exp_id in enumerate(per_exp_input_text):
         object_id = per_exp_obj_id[exp_id]
         inputs_per_object[object_id][0] = per_exp_input_text[exp_id]
@@ -203,82 +198,25 @@ def rvos_inference(
     # for object_id in latter_frame_object_ids:
     object_ids = sorted(inputs_per_object)
     output_scores_per_object = defaultdict(dict)
-    if strat_from_first_frame:
-        predictor.reset_state(inference_state)
-        # 都是第一帧
-        for object_id in object_ids:
-            # 1.从视频第一帧进行text prompt的inference，2.然后再做VOS的inference
-            #  挑出text prompt比较好的mask调用add_new_mask（需要连续的），其余的预测mask放置到output_scores_per_object中，然后再开始VOS的inference
-            # input_frame_inds = sorted(inputs_per_object[object_id])
-            # for input_frame_idx in input_frame_inds:
-            predictor.add_new_text(
-                inference_state=inference_state,
-                frame_idx=0,
-                obj_id=object_id,
-                text=inputs_per_object[object_id][0],  # 需要送入对应的index
-            )
-        # run propagation throughout the video and collect the results in a dict
-        for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-            inference_state,
-            start_frame_idx=0,
-            reverse=False,
-            only_ref=only_ref
-        ):
-            # obj_scores = out_mask_logits.cpu().numpy()
-            obj_scores = out_mask_logits
-            for i, out_obj_id in enumerate(out_obj_ids):
-                output_scores_per_object[out_obj_id][out_frame_idx] = obj_scores[i: i + 1]
-    else:
-        predictor.reset_state(inference_state)
-        # 分成第一帧出现的物体和后续出现的物体
-        ff_object_ids = []
-        lf_object_ids = []
-        for object_id in object_ids:
-            if per_exp_first_frame_id[str(object_id)] == 0:
-                ff_object_ids.append(object_id)
-            else:
-                lf_object_ids.append(object_id)
-
-        for object_id in ff_object_ids:
-            predictor.add_new_text(
-                inference_state=inference_state,
-                frame_idx=0,
-                obj_id=object_id,
-                text=inputs_per_object[object_id][0],  # 需要送入对应的index
-            )
-            print(f'object_id: {object_id}, text: {inputs_per_object[object_id][0]}')
-        # run propagation throughout the video and collect the results in a dict
-        for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-                inference_state,
-                start_frame_idx=0,
-                reverse=False,
-                only_ref=only_ref
-        ):
-            obj_scores = out_mask_logits
-            for i, out_obj_id in enumerate(out_obj_ids):
-                output_scores_per_object[out_obj_id][out_frame_idx] = obj_scores[i: i + 1]
-
-        for object_id in lf_object_ids:
-            predictor.reset_state(inference_state)
-
-            predictor.add_new_text(
-                inference_state=inference_state,
-                frame_idx=per_exp_first_frame_id[str(object_id)],
-                obj_id=object_id,
-                text=inputs_per_object[object_id][0],  # 需要送入对应的index
-            )
-            print(f'object_id: {object_id}, text: {inputs_per_object[object_id][0]}')
-
-            # run propagation throughout the video and collect the results in a dict
-            for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
-                inference_state,
-                start_frame_idx=per_exp_first_frame_id[str(object_id)],
-                reverse=False,
-                only_ref=only_ref
-            ):
-                obj_scores = out_mask_logits
-                for i, out_obj_id in enumerate(out_obj_ids):
-                    output_scores_per_object[out_obj_id][out_frame_idx] = obj_scores[i: i + 1]
+    predictor.reset_state(inference_state)
+    for object_id in object_ids:
+        predictor.add_new_text(
+            inference_state=inference_state,
+            frame_idx=0,
+            obj_id=object_id,
+            text=inputs_per_object[object_id][0],
+        )
+    # run propagation throughout the video and collect the results in a dict
+    for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(
+        inference_state,
+        start_frame_idx=0,
+        reverse=False,
+        only_ref=only_ref
+    ):
+        # obj_scores = out_mask_logits.cpu().numpy()
+        obj_scores = out_mask_logits
+        for i, out_obj_id in enumerate(out_obj_ids):
+            output_scores_per_object[out_obj_id][out_frame_idx] = obj_scores[i: i + 1]
 
     video_segments = {}
     for out_frame_idx in range(len(frame_names)):
@@ -345,7 +283,7 @@ def rvos_inference(
 
 def benchmark_ref18(args, gt_root, output_mask_dir):
     evaluate_object_id_groups = {
-        'instrument': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        'instrument': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         'tissue': [11, 12, 17]
     }
     for object_id_group_name, evaluate_object_id_list in evaluate_object_id_groups.items():
@@ -412,11 +350,6 @@ def main():
     parser.add_argument(
         "--apply_credible_initial_frame",
         type=int, default=1,
-    )
-    parser.add_argument(
-        "--strat_from_first_frame",
-        type=int,
-        default=True,
     )
     parser.add_argument(
         "--num_cand_to_cond_frame",
@@ -506,7 +439,6 @@ def main():
             read_frame_interval=args.read_frame_interval,
             save_frame_interval=args.save_frame_interval,
             only_ref=args.only_ref,
-            strat_from_first_frame=args.strat_from_first_frame,
         )
 
     print(

@@ -55,25 +55,25 @@ python training/train.py --config configs/rvos_training/18/sam2.1_s_ref18_resurg
 
 ## Evaluation
 
-Download the checkpoints from [google drive](https://drive.google.com/file/d/12pbQhWdKFNPAYk9IC33CVNbeBded7_wI/view?usp=sharing). Place the file at `project_root/checkpoints/`.
+Download the checkpoints from [google drive](https://drive.google.com/file/d/12pbQhWdKFNPAYk9IC33CVNbeBded7_wI/view?usp=sharing). Place the files at `project_root/checkpoints/`.
 
 For Ref-Endovis17:
 
 ```
-python tools/rvos_inference.py --training_config_file configs/rvos_training/17/sam2.1_s_ref17_resurgsam --sam2_cfg configs/sam2.1/sam2.1_hiera_s_rvos.yaml --sam2_checkpoint checkpoints/sam2.1_hiera_s_ref17.pth --output_mask_dir results/ref-endovis17/hiera_small_long_mem --dataset_root ./data/Ref-Endovis17/valid --gpu_id 0 --strat_from_first_frame 1 --apply_long_term_memory --num_cifs_candidate_frame 5
+python tools/rvos_inference.py --training_config_file configs/rvos_training/17/sam2.1_s_ref17_resurgsam --sam2_cfg configs/sam2.1/sam2.1_hiera_s_rvos.yaml --sam2_checkpoint checkpoints/sam2.1_hiera_s_ref17.pth --output_mask_dir results/ref-endovis17/hiera_small_long_mem --dataset_root ./data/Ref-Endovis17/valid --gpu_id 0 --apply_long_term_memory --num_cifs_candidate_frame 5
 ```
 
 For Ref-Endovis18:
 
 ```
-python tools/rvos_inference.py --training_config_file configs/rvos_training/18/sam2.1_s_ref18_resurgsam --sam2_cfg configs/sam2.1/sam2.1_hiera_s_rvos.yaml --sam2_checkpoint checkpoints/hiera_small_ref18.pt --output_mask_dir results/ref-endovis18/hiera_small_long_mem --dataset_root ./data/Ref-Endovis18/valid --gpu_id 0 --strat_from_first_frame 1 --apply_long_term_memory --num_cifs_candidate_frame 5
+python tools/rvos_inference.py --training_config_file configs/rvos_training/18/sam2.1_s_ref18_resurgsam --sam2_cfg configs/sam2.1/sam2.1_hiera_s_rvos.yaml --sam2_checkpoint checkpoints/sam2.1_hiera_s_ref18.pth --output_mask_dir results/ref-endovis18/hiera_small_long_mem --dataset_root ./data/Ref-Endovis18/valid --gpu_id 0 --apply_long_term_memory --num_cifs_candidate_frame 5
 ```
 
 ## Acknowledgement
 
 This research utilizes datasets from [Endovis 2017](https://endovissub2017-roboticinstrumentsegmentation.grand-challenge.org/Downloads/) and [Endovis 2018](https://endovissub2018-roboticscenesegmentation.grand-challenge.org/Downloads/). If you wish to use these datasets, please request access through their respective official websites.
 
-Our implementation builds upon the [segment anything 2](https://github.com/facebookresearch/segment-anything-2) framework and [CLIP](https://github.com/openai/CLIP). We extend our sincere appreciation to the authors for their outstanding work and significant contributions to the field of video segmentation.
+Our implementation builds upon the [segment anything 2](https://github.com/facebookresearch/segment-anything-2) framework, [mamba](https://github.com/state-spaces/mamba), and [CLIP](https://github.com/openai/CLIP). We extend our sincere appreciation to the authors for their outstanding work and significant contributions to the field of video segmentation.
 
 ## Citation
 

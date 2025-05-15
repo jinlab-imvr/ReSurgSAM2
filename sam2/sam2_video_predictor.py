@@ -500,7 +500,6 @@ class SAM2VideoPredictor(SAM2Base):
            on the object scores.
         """
         batch_size = self._get_obj_num(inference_state)
-        # TODO 需要在这里添加ref_frame，然后在propagate_in_video中进行处理
         storage_key = "cond_frame_outputs" if is_cond else "non_cond_frame_outputs"
         # Optionally, we allow consolidating the temporary outputs at the original
         # video resolution (to provide a better editing experience for mask prompts).
@@ -1005,7 +1004,6 @@ class SAM2VideoPredictor(SAM2Base):
                         cos_sim_list.append((prev_frame_idx, cos_sim))
 
                     selected_frame_idx, _ = min(cos_sim_list, key=lambda x: x[1])
-                    print(f'long-term memory frame {selected_frame_idx} is selected')
 
                     output_dict["long_mem"].append(selected_frame_idx)
                     output_dict["long_mem_candidate"].clear()  # 清空memory candidate pool
