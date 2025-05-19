@@ -12,14 +12,7 @@ def get_expression_and_category(category, action_id, location_id=0, dataset_name
             exp = '{} {} {}'.format(category, linking_verb, action_mapping[action_id])
     else:
         raise ValueError('Unknown dataset name')
-    category_id = category_mapping[category]
-    return exp, category_id
-
-category_mapping = {
-    'bipolar forceps': 1, 'prograsp forceps': 2,'large needle driver': 3, 'monopolar curved scissors': 4,
-    'suction': 5, 'clip applier': 6, 'ultrasound probe': 7, 'vessel sealer': 8, 'grasping retractor': 9,
-    'kidney-parenchyma': 10, 'covered-kidney': 11, 'small-intestine': 12
-}
+    return exp
 
 
 action_mapping = {

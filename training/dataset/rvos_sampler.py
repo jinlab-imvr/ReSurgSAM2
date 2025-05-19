@@ -107,7 +107,7 @@ class RandomUniformSampler(RVOSSampler):
             action_id = video.meta_annotation['frames'][frame_name][str(obj_id)]['action']
             location_id = video.meta_annotation['frames'][frame_name][str(obj_id)]['location']
             is_unique = video.meta_annotation['frames'][frame_name][str(obj_id)]['unique']
-            exp, category_id = get_expression_and_category(category, action_id, location_id, is_unique=is_unique, dataset_name=self.dataset_name)
+            exp = get_expression_and_category(category, action_id, location_id, is_unique=is_unique, dataset_name=self.dataset_name)
             expressions.append(exp)
 
         return SampledFramesAndObjects(frames=frames, object_ids=object_ids, expressions=expressions)
