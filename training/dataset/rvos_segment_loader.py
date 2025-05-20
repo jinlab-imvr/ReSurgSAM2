@@ -100,13 +100,15 @@ class JSONSegmentLoader:
         return res
 
 
+
 class PalettisedPNGSegmentLoader:
-    def __init__(self, video_png_root):
+    def __init__(self, video_png_root, used_obj_list):
         """
         SegmentLoader for datasets with masks stored as palettised PNGs.
         video_png_root: the folder contains all the masks stored in png
         """
         self.video_png_root = video_png_root
+        self.used_obj_list = used_obj_list
         # build a mapping from frame id to their PNG mask path
         # note that in some datasets, the PNG paths could have more
         # than 5 digits, e.g. "00000000.png" instead of "00000.png"
@@ -135,6 +137,11 @@ class PalettisedPNGSegmentLoader:
 
         object_id = pd.unique(masks.flatten())
         object_id = object_id[object_id != 0]  # remove background (0)
+
+        if self.used_obj_list is not None:
+            # remove background (0) and unused objects
+            object_id = [obj_id for obj_id in object_id if obj_id in self.used_obj_list]
+
 
         # convert into N binary segmentation masks
         binary_segments = {}

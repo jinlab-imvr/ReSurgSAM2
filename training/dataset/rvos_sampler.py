@@ -8,7 +8,7 @@ import random
 from dataclasses import dataclass
 from typing import List
 
-from training.dataset.vos_segment_loader import LazySegments
+from training.dataset.rvos_segment_loader import LazySegments
 from training.dataset.rvos_expression import get_expression_and_category
 
 MAX_RETRIES = 1000
