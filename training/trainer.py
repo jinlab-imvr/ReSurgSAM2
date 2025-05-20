@@ -34,7 +34,6 @@ from training.utils.data_utils import BatchedVideoDatapoint
 from training.utils.distributed import all_reduce_max, barrier, get_rank
 
 from training.utils.logger import Logger, setup_logging
-from tools.endovis_val import ref_endovis_val
 
 from training.utils.train_utils import (
     AverageMeter,
@@ -166,10 +165,7 @@ class Trainer:
         meters: Optional[Dict[str, Any]] = None,
         loss: Optional[Dict[str, Any]] = None,
         pretrained_epoch: int = 0,
-        val_config: Optional[Dict[str, Any]] = None,
         training_config_file: str = "",
-        val_only_ref: bool = False,
-        val_use_long_term_memory: bool = False,
     ):
 
         self._setup_env_variables(env_variables)
@@ -189,10 +185,7 @@ class Trainer:
         cuda = CudaConf(**cuda or {})
         self.where = 0.0
         self.pretrained_epoch = pretrained_epoch
-        self.val_config = val_config
         self.training_config_file = training_config_file
-        self.val_only_ref = val_only_ref
-        self.val_use_long_term_memory = val_use_long_term_memory
 
         self._infer_distributed_backend_if_none(distributed, accelerator)
 
@@ -584,12 +577,6 @@ class Trainer:
             del dataloader
             gc.collect()
 
-            # Run val, not running on last epoch since will run after the
-            # loop anyway
-            if self.is_intermediate_val_epoch(self.epoch+1) or self.epoch == self.max_epochs - 1 or self.epoch==0:
-                if self.local_rank == 0:
-                    self.run_endovis_val(epoch=self.epoch+1)
-
             if self.distributed_rank == 0:
                 self.best_meter_values.update(self._get_trainer_state("train"))
                 with g_pathmgr.open(
@@ -602,15 +589,6 @@ class Trainer:
         # epoch was incremented in the loop but the val step runs out of the loop
         self.epoch -= 1
 
-    def run_endovis_val(self, epoch):
-        dst = os.path.join(self.checkpoint_conf.save_dir, "checkpoint.pt")
-        # output_mask_dir = self.val_config.output_mask_dir + f"/epoch_{epoch}"
-        ref_endovis_val(self.val_config, dst, epoch=epoch, training_config_file=self.training_config_file,
-                        only_ref=self.val_only_ref, use_long_term_memory=self.val_use_long_term_memory, output_mask_dir=None)
-        if self.val_use_long_term_memory:
-            ref_endovis_val(self.val_config, dst, epoch=epoch, training_config_file=self.training_config_file,
-                            only_ref=self.val_only_ref, use_long_term_memory=not self.val_use_long_term_memory,
-                            output_mask_dir=None)
 
     def run_val(self):
         if not self.val_dataset:

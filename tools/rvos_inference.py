@@ -156,7 +156,6 @@ def rvos_inference(
     read_frame_interval=1,
     save_frame_interval=1,
     ref_dataset=True,
-    only_ref=False,
 ):
     """
     Run VOS inference on a single video with the given predictor.
@@ -168,7 +167,6 @@ def rvos_inference(
     """
     # load the video frames and initialize the inference state on this video
     assert ref_dataset, "This function is only for reference datasets"
-    print(f'Evaluating with only_ref: {only_ref}')
     video_dir = os.path.join(base_video_dir, video_name)
     all_frame_names = [
         os.path.splitext(p)[0]
@@ -211,7 +209,6 @@ def rvos_inference(
         inference_state,
         start_frame_idx=0,
         reverse=False,
-        only_ref=only_ref
     ):
         # obj_scores = out_mask_logits.cpu().numpy()
         obj_scores = out_mask_logits
@@ -368,10 +365,6 @@ def main():
         default=3,
     )
 
-    parser.add_argument(
-        "--only_ref",
-        action="store_true",
-    )
     parser.add_argument("--gpu_id", type=int, default=0)
     parser.add_argument("--read_frame_interval", type=int, default=1)
     parser.add_argument("--save_frame_interval", type=int, default=1)
@@ -400,9 +393,6 @@ def main():
     torch.cuda.set_device(args.gpu_id)
     print(f"Using GPU {args.gpu_id}")
     print('Warning: only support evaluating one object per sequence and saving in object directories.')
-
-    if args.only_ref:
-        print('Warning: in only_ref mode, we do not select frame to start tracking with SAM2.')
 
     # print('Testing with first frame prompt file:', args.first_frame_prompt_file)
 
@@ -438,7 +428,6 @@ def main():
             score_thresh=args.score_thresh,
             read_frame_interval=args.read_frame_interval,
             save_frame_interval=args.save_frame_interval,
-            only_ref=args.only_ref,
         )
 
     print(

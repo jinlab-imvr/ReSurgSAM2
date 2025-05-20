@@ -656,7 +656,6 @@ class SAM2VideoPredictor(SAM2Base):
         start_frame_idx=None,
         max_frame_num_to_track=None,
         reverse=False,
-        only_ref=False,
     ):
         """Propagate the input points across frames to track in the entire video."""
         # Put the determined condition frame into the init condition frame, which will be used later
@@ -712,7 +711,7 @@ class SAM2VideoPredictor(SAM2Base):
                 # that received input clicks or mask). Note that we cannot directly run
                 # batched forward on them via `_run_single_frame_inference` because the
                 # number of clicks on each object might be different.
-                if len(obj_output_dict["cond_frame_outputs"]) == 0 or only_ref:
+                if len(obj_output_dict["cond_frame_outputs"]) == 0:
                     storage_key = "ref_frame_outputs"
                     text_emb_inputs = inference_state["text_inputs_per_obj"][obj_idx]['text_emb']
                     current_out, pred_masks, current_vision_feats, current_vision_pos_embeds = (
@@ -733,10 +732,10 @@ class SAM2VideoPredictor(SAM2Base):
                     previous_ref_feats_per_obj[obj_idx].appendleft(current_vision_feats)
                     previous_ref_pos_embeds_per_obj[obj_idx].appendleft(current_vision_pos_embeds)
 
-                    if not only_ref and not self.use_credible_initial_frame:
+                    if not self.use_credible_initial_frame:
                         if current_out['object_score_logits'][0, 0].sigmoid() > 0.9 and current_out['iou'][0] > 0.7:
                             self.select_frame_to_output(inference_state, obj_output_dict, frame_idx, current_out)
-                    elif not only_ref and self.use_credible_initial_frame:
+                    elif self.use_credible_initial_frame:
 
                         # Set the threshold of the object score. If it exceeds the threshold, put the frame into cond_frame_outputs.
                         if current_out['object_score_logits'][0, 0].sigmoid() > 0.9:

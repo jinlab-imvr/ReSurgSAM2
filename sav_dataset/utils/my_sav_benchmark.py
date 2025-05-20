@@ -22,10 +22,9 @@ import numpy as np
 import tqdm
 from PIL import Image
 from skimage.morphology import disk
-from .ciou_evaluator import CIoUEvaluator
 
 class VideoEvaluator:
-    def __init__(self, gt_root, pred_root, ref_dataset=True, skip_first_and_last=True, evaluate_ciou=True) -> None:
+    def __init__(self, gt_root, pred_root, ref_dataset=True, skip_first_and_last=True) -> None:
         """
         gt_root: path to the folder storing the gt masks
         pred_root: path to the folder storing the predicted masks
@@ -36,11 +35,8 @@ class VideoEvaluator:
         self.gt_root = gt_root
         self.pred_root = pred_root
         self.skip_first_and_last = skip_first_and_last
-        self.ciou_start_frame = 1
-        self.evaluate_ciou = evaluate_ciou
         if ref_dataset:
             self.skip_first_and_last = False
-            self.ciou_start_frame = 0
 
     def __call__(self, data) -> Tuple[str, Dict[str, float], Dict[str, float], Dict[str, float]]:
         """
@@ -53,16 +49,13 @@ class VideoEvaluator:
         to_evaluate, is_sav_format = self.scan_vid_folder(vid_name, evaluate_object_ids)
 
         eval_results = []
-        all_frame_fg_obj_list = []
         for all_frames, obj_id, gt_path, pred_path in to_evaluate:
             obj_id = int(obj_id)
-            ciou_frames = all_frames[self.ciou_start_frame:] if self.evaluate_ciou else []
             if self.skip_first_and_last:
                 # skip the first and the last frames
                 all_frames = all_frames[1:-1]
 
             evaluator = Evaluator(name=vid_name, obj_id=obj_id)
-            ciou_evaluator = CIoUEvaluator()
             for frame in all_frames:
                 gt_array, pred_array = self.get_gt_and_pred(
                     gt_path, pred_path, frame, is_sav_format, object_id=obj_id
@@ -73,29 +66,6 @@ class VideoEvaluator:
 
             # for challenge IoU, only consider the object in the ground-truth and remove the first frame
             combined_pred_path = os.path.join(os.path.dirname(pred_path), 'all')
-            for frame in ciou_frames:
-                gt_array, pred_array = self.get_gt_and_pred(
-                    gt_path, combined_pred_path, frame, is_sav_format=False, object_id=obj_id
-                )
-                ciou_evaluator.feed_frame(mask=pred_array, gt=gt_array, frame=frame, object_id=obj_id)
-            all_frame_fg_obj_list.extend(ciou_evaluator.frame_fg_object_iou)
-        # --------------for challenge IoU----------------
-        # arrange the frame_obj_list into dict
-        frame_fg_obj_dict = {}
-        for d in all_frame_fg_obj_list:
-            this_frame = d[0]
-            this_obj_id = d[1]
-            this_iou = d[2]
-            if this_frame not in frame_fg_obj_dict:
-                frame_fg_obj_dict[this_frame] = []
-            frame_fg_obj_dict[this_frame].append((this_obj_id, this_iou))
-
-        # compute frame level average, for challenge IoU
-        frame_avg_fg_iou_list = []  # store the average IoU for each frame
-        for k, v in frame_fg_obj_dict.items():
-            if len(v) != 0:  # if there is no object in the frame, we skip it
-                frame_avg_fg_iou_list.append(np.mean([x[1] for x in v]))
-        # --------------for challenge IoU----------------
 
         if is_sav_format:
             iou_output, boundary_f_output, dice_output = self.consolidate(eval_results)
@@ -105,7 +75,7 @@ class VideoEvaluator:
             boundary_f_output = eval_results[0][2]
             dice_output = eval_results[0][3]
 
-        return vid_name, iou_output, boundary_f_output, dice_output, frame_avg_fg_iou_list
+        return vid_name, iou_output, boundary_f_output, dice_output
 
     def get_gt_and_pred(
         self,
@@ -390,7 +360,6 @@ def benchmark(
     epoch=0,
     evaluate_object_id_list=None,
     ref_dataset=True,
-    evaluate_ciou=True
 ):
     """
     gt_roots: a list of paths to datasets, i.e., [path_to_DatasetA, path_to_DatasetB, ...]
@@ -473,7 +442,7 @@ def benchmark(
         results = tqdm.tqdm(
             pool.imap(
                 VideoEvaluator(
-                    gt_root, mask_root, skip_first_and_last=skip_first_and_last, ref_dataset=ref_dataset, evaluate_ciou=evaluate_ciou
+                    gt_root, mask_root, skip_first_and_last=skip_first_and_last, ref_dataset=ref_dataset
                 ),
                 input_data
             ),
@@ -483,7 +452,6 @@ def benchmark(
     pool.close()
 
     all_global_jf, all_global_j, all_global_f, all_global_dice = [], [], [], []
-    all_object_metrics = []
     for i, mask_root in enumerate(mask_roots):
         if not single_dataset:
             results = to_wait[i].get()
@@ -492,15 +460,11 @@ def benchmark(
         all_boundary_f = []
         all_dice = []
         object_metrics = {}
-        all_frame_avg_fg_iou_list = []
-        for name, iou, boundary_f, dice, frame_avg_fg_iou_list in results:
+        for name, iou, boundary_f, dice in results:
             all_iou.extend(list(iou.values()))
             all_boundary_f.extend(list(boundary_f.values()))
             all_dice.extend(list(dice.values()))
             object_metrics[name] = (iou, boundary_f, dice)
-            all_frame_avg_fg_iou_list.extend(frame_avg_fg_iou_list)
-        print(f"Number of frames for challenge iou: {len(all_frame_avg_fg_iou_list)}")
-        avg_challenge_iou = np.array(all_frame_avg_fg_iou_list).mean() * 100
         global_j = np.array(all_iou).mean()
         global_f = np.array(all_boundary_f).mean()
         global_jf = (global_j + global_f) / 2
@@ -513,16 +477,14 @@ def benchmark(
         # find max length for padding
         ml = max(*[len(n) for n in object_metrics.keys()], len("Global score"))
         # build header
-        out_string = f'{"sequence":<{ml}},{"obj":>3}, {"J&F":>4}, {"J":>4}, {"F":>4}, {"Dice":>4}, {"CIoU":>4}\n'
-        out_string += (f'{"Global score":<{ml}},{"":>3}, {global_jf:.2f}, {global_j:.2f}, {global_f:.2f}, {global_dice:.2f}, '
-                       f'{avg_challenge_iou:.2f}\n')
+        out_string = f'{"sequence":<{ml}},{"obj":>3}, {"J&F":>4}, {"J":>4}, {"F":>4}, {"Dice":>4}\n'
+        out_string += (f'{"Global score":<{ml}},{"":>3}, {global_jf:.2f}, {global_j:.2f}, {global_f:.2f}, {global_dice:.2f}\n')
         # append one line for each object
         for name, (iou, boundary_f, dice) in object_metrics.items():
             for object_idx in iou.keys():
                 j, f, d = iou[object_idx], boundary_f[object_idx], dice[object_idx]
                 jf = (j + f) / 2
                 out_string += (
-                    # f"{name:<{ml}},{object_idx:03}, {jf:>4.1f}, {j:>4.1f}, {f:>4.1f}, {d:>4.1f}\n"
                     f"{name:<{ml}},{object_idx:03}, {jf:>4.2f}, {j:>4.2f}, {f:>4.2f}, {d:>4.2f}\n"
                 )
 
@@ -531,10 +493,10 @@ def benchmark(
             print(out_string.replace(",", " "), end="")
             print("\nSummary:")
             print(
-                f"Global score: J&F    J        F        Dice    CIoU"
+                f"Global score: J&F    J        F        Dice"
             )
             print(
-                f"              {global_jf:.2f}  {global_j:.2f}  {global_f:.2f}  {global_dice:.2f}  {avg_challenge_iou:.2f}"
+                f"              {global_jf:.2f}  {global_j:.2f}  {global_f:.2f}  {global_dice:.2f} "
             )
             print(f"Time taken: {time_taken:.2f}s")
 
@@ -544,13 +506,11 @@ def benchmark(
         with open(result_path, "a+") as f:
             f.write('Epoch: ' + str(epoch) + ' is below\n')
             f.write(out_string)
-            f.write("ChallengeIoU: " + str(avg_challenge_iou) + "\n")
             f.write("\n")
 
         all_global_jf.append(global_jf)
         all_global_j.append(global_j)
         all_global_f.append(global_f)
         all_global_dice.append(global_dice)
-        all_object_metrics.append(object_metrics)
 
-    return all_global_jf, all_global_j, all_global_f, all_global_dice, all_object_metrics
+    return all_global_jf, all_global_j, all_global_f, all_global_dice

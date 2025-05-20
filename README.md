@@ -36,6 +36,7 @@ pip install .
 Please follow the steps written in [datasets/README.md](datasets/README.md)
 
 ## Training
+Please set the working directory as project_root, and then follow:
 
 For Ref-Endovis17:
 
@@ -56,6 +57,8 @@ python training/train.py --config configs/rvos_training/18/sam2.1_s_ref18_resurg
 ## Evaluation
 
 Download the checkpoints from [google drive](https://drive.google.com/file/d/12pbQhWdKFNPAYk9IC33CVNbeBded7_wI/view?usp=sharing). Place the files at `project_root/checkpoints/`.
+
+Please set the working directory as project_root, and then follow:
 
 For Ref-Endovis17:
 

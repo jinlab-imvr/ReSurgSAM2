@@ -240,7 +240,7 @@ trainer:
       phases_per_epoch: ${scratch.phases_per_epoch}
       batch_sizes:
         - ${scratch.train_batch_size}
-        - 8
+        - ${times:${scratch.train_batch_size},2}
       dataset_prob:
         - 0.5
         - 0.5
@@ -285,7 +285,7 @@ trainer:
                 file_list_txt: ${dataset.file_list_txt}
                 used_object_ids: ${dataset.used_object_ids}
                 frames_sampling_mult: True
-                mult_ratio: 1
+                mult_ratio: ${times:${dataset.frame_sampling_mult_ratio},2}
               sampler:
                 _target_: training.dataset.rvos_sampler.RandomUniformSampler
                 num_tracking_frames: 0
