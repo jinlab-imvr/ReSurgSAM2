@@ -7,7 +7,6 @@ Official implementation for ReSurgSAM2, an innovative model that leverages the p
 > 
 >Early accepted by MICCAI 2025
 
-The source code is coming soon.
 
 ## Overview
 
