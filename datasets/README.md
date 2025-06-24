@@ -5,7 +5,7 @@ Here we describe the steps for using the Endoscopic Vision 2017 [1] and 2018 [2]
 ## Downloading the data
 
 1. Download the 2017 dataset from the challenge webpage [here](https://endovissub2017-roboticinstrumentsegmentation.grand-challenge.org/).
-2. Download the 2018 dataset with our instrument-type annotations [here](https://biomedicalcomputervision.uniandes.edu.co/index.php/research?id=44).
+2. Download the 2018 dataset with our instrument-type annotations [here](https://endovissub2018-roboticscenesegmentation.grand-challenge.org/).
 3. Download the Ref-Endovis17 [here](https://drive.google.com/file/d/1d4oq9dZdPxcJ0lx0qA-p8ODlNnh55wjU/view?usp=sharing) and Ref-Endovis18 [here](https://drive.google.com/file/d/1N_Xc0K3d7M_fnlRDx_gdyC6tfpl1aQWJ/view?usp=sharing).
 
 The download dataset structure should look like:
