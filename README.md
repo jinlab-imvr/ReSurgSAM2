@@ -34,6 +34,9 @@ pip install .
 
 Please follow the steps written in [datasets/README.md](datasets/README.md)
 
+Note: We have corrected minor annotation inconsistencies in the Ref-EndoVis17 training dataset; details can be found in [datasets/README.md](datasets/README.md).
+
+
 ## Training
 Please set the working directory as project_root, and then follow:
 
