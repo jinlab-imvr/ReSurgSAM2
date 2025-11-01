@@ -2,17 +2,11 @@
 
 Here we describe the steps for using the Endoscopic Vision 2017 [1] and 2018 [2] to construct Ref-Endovis17 and Ref-Endovis18.
 
-## Notes on Dataset Correction
-
-Minor annotation inconsistencies were found and corrected in the Ref-Endovis17 training set. In `seq_9`, the instrument labels were swapped and have been fixed as follows:  
-`"2": "bipolar forceps", "4": "prograsp forceps"`.
-
-
 ## Downloading the data
 
-1. Download the 2017 dataset from the challenge webpage [here](https://endovissub2017-roboticinstrumentsegmentation.grand-challenge.org/).
-2. Download the 2018 dataset from the challenge webpage [here](https://endovissub2018-roboticscenesegmentation.grand-challenge.org/).
-3. Download the Ref-Endovis17 [here](https://drive.google.com/file/d/1Fei1nPCfNNQX-co9x-Mh-A29ZjJL1kDe/view?usp=sharing) and Ref-Endovis18 [here](https://drive.google.com/file/d/1N_Xc0K3d7M_fnlRDx_gdyC6tfpl1aQWJ/view?usp=sharing).
+1. Download the 2017 dataset from the challenge webpage https://endovissub2017-roboticinstrumentsegmentation.grand-challenge.org/
+2. Download the 2018 dataset from the challenge webpage https://endovissub2018-roboticscenesegmentation.grand-challenge.org/
+3. Download the Ref-Endovis17 [here](https://huggingface.co/datasets/HeverLaw/Ref-EndoVis17/tree/main) and Ref-Endovis18 [here](https://huggingface.co/datasets/HeverLaw/Ref-EndoVis18/tree/main).
 
 The download dataset structure should look like:
 
@@ -70,6 +64,17 @@ project_root/
     	└── valid
     		└── ...
 ```
+
+## Notes on Dataset Correction
+
+Minor annotation inconsistencies were found and corrected in the Ref-Endovis17/18 training set. Please download the latest version of the datasets from the provided links above.
+
+In Ref-Endovis17 `seq_9`, the instrument labels have been fixed as follows:  
+`"2": "bipolar forceps", "4": "prograsp forceps"`. 
+
+In Ref-Endovis18 `seq_13`, the instrument labels have been fixed as follows:  
+`"2": "prograsp forceps", "3": "large needle driver"`.
+
 
 ## References
 

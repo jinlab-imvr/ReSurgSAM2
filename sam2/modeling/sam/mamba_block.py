@@ -1,6 +1,6 @@
 import torch.nn as nn
 # from mamba_ssm import Mamba
-from mamba.mamba_ssm.modules.mamba_simple import Mamba
+from mamba_ssm.modules.mamba_simple import Mamba
 
 import math
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_

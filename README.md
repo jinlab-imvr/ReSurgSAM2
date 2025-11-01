@@ -21,20 +21,45 @@ Achieves substantial improvements in accuracy and efficiency compared to existin
 ![architecture](./assets/architecture.png)
 
 ## Installization
-For SAM2 installization, please refer to [INSTALL.md](INSTALL.md). For this project, we need to run for development in project_root:
+
+We build the model based on Torch 2.5.10 and Python 3.10. It is recommended to create a new conda environment:
 ```
-pip install -e ".[dev]"
+conda create -n resurgsam2 python=3.10
+conda activate resurgsam2
+pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+
+cd project_root
+pip install -e ".[dev]" --no-build-isolation -v
+
+cd mamba
+pip install -e . --no-build-isolation -v
+
+# To test the installation:
+import mamba_ssm
 ```
-For Mamba installization, please refer to [mamba/README.md](mamba/README.md). For this project, we need to run in project_root/mamba
+
+However, If you want to use the latest packages, you can install build without --no-build-isolation when setting up for SAM2:
 ```
-pip install .
+conda create -n resurgsam2 python=3.10
+conda activate resurgsam2
+
+cd project_root
+pip install -e ".[dev]" -v
+
+cd mamba
+pip install -e . --no-build-isolation -v
+
+# To test the installation:
+import mamba_ssm
 ```
+More installation details can be found in [SAM2 INSTALL.md](INSTALL.md) and [mamba/README.md](mamba/README.md).
+
 
 ## Dataset Acquisition and Preprocessing
 
 Please follow the steps written in [datasets/README.md](datasets/README.md)
 
-Note: We have corrected minor annotation inconsistencies in the Ref-EndoVis17 training dataset; details can be found in [datasets/README.md](datasets/README.md).
+***Note***: We have corrected minor annotation inconsistencies in the Ref-EndoVis17/18 training dataset; details can be found in [datasets/README.md](datasets/README.md).
 
 
 ## Training
